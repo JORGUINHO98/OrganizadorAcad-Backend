@@ -232,6 +232,11 @@ const subirAdjunto = async (req, res) => {
       return res.status(400).json({ mensaje: 'No se recibió ningún archivo' });
     }
 
+    if (!req.file.originalname || !req.file.filename || !req.file.mimetype || !req.file.size) {
+      fs.unlink(req.file.path, () => {});
+      return res.status(400).json({ mensaje: 'El archivo recibido no contiene metadata válida' });
+    }
+
     if (tarea.archivoAdjunto?.nombreArchivo) {
       const rutaAnterior = path.join(__dirname, '..', '..', 'uploads', tarea.archivoAdjunto.nombreArchivo);
       fs.unlink(rutaAnterior, () => {});
