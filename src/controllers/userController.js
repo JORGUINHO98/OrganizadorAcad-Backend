@@ -47,7 +47,7 @@ const updateUser = async (req, res) => {
   } catch (error) {
     if (error.code === 11000) {
       const campo = Object.keys(error.keyPattern)[0];
-      return res.status(400).json({ mensaje: `El ${campo} ya está en uso` });
+      return res.status(400).json({ mensaje: 'El ' + campo + ' ya está en uso' });
     }
     res.status(400).json({ mensaje: error.message });
   }

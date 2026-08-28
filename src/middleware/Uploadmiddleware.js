@@ -23,9 +23,9 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     // Nombre único para evitar sobreescribir archivos con el mismo nombre
-    const sufijoUnico = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    const sufijoUnico = Date.now() + '-' + Math.round(Math.random() * 1e9);
     const extension = path.extname(file.originalname);
-    cb(null, `${sufijoUnico}${extension}`);
+    cb(null, sufijoUnico + extension);
   },
 });
 

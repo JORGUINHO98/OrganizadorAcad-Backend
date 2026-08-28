@@ -255,7 +255,7 @@ const subirAdjunto = async (req, res) => {
     tarea.archivoAdjunto = {
       nombreOriginal: req.file.originalname,
       nombreArchivo: req.file.filename,
-      url: `/uploads/${req.file.filename}`,
+      url: '/uploads/' + req.file.filename,
       tipo: req.file.mimetype,
       tamano: req.file.size,
       fechaSubida: new Date(),

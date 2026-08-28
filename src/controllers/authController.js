@@ -85,7 +85,7 @@ const register = async (req, res) => {
     } catch (error) {
         if (error.code === 11000) {
             const campo = Object.keys(error.keyPattern)[0];
-            return res.status(400).json({ error: `El ${campo} ya está en uso` });
+            return res.status(400).json({ error: 'El ' + campo + ' ya está en uso' });
         }
         res.status(400).json({ error: error.message });
     }
