@@ -28,7 +28,7 @@ const updateUser = async (req, res) => {
       return res.status(403).json({ mensaje: 'No puedes editar a otro usuario' });
     }
 
-    const { username, email, password } = req.body;
+    const { username, email, password, ci } = req.body;
 
     const usuario = await User.findById(req.params.id);
     if (!usuario) {
@@ -38,6 +38,7 @@ const updateUser = async (req, res) => {
     if (username !== undefined) usuario.username = username;
     if (email !== undefined) usuario.email = email;
     if (password !== undefined) usuario.password = password; // el pre('save') del modelo lo hashea
+    if (ci !== undefined) usuario.ci = ci;
 
     const usuarioActualizado = await usuario.save();
     const { password: _, ...usuarioSinPassword } = usuarioActualizado.toObject();
@@ -71,8 +72,40 @@ const deleteUser = async (req, res) => {
   }
 };
 
+// ---------------------------------------------
+// GET /api/users/buscar?q=texto
+// Busca estudiantes por nombre (username) o cédula (ci).
+// Solo accesible para Docentes (se restringe en la ruta).
+// Devuelve máximo 20 resultados, sin password.
+// ---------------------------------------------
+const buscarEstudiantes = async (req, res) => {
+  try {
+    const { q } = req.query;
+
+    if (!q || q.trim().length < 2) {
+      return res.status(400).json({ mensaje: 'Escribe al menos 2 caracteres para buscar' });
+    }
+
+    const texto = q.trim();
+    const textoEscapado = texto.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(textoEscapado, 'i');
+
+    const estudiantes = await User.find({
+      'rol.nombre': 'Estudiante',
+      $or: [{ username: regex }, { ci: regex }],
+    })
+      .select('username email ci')
+      .limit(20);
+
+    res.status(200).json(estudiantes);
+  } catch (error) {
+    res.status(500).json({ mensaje: error.message });
+  }
+};
+
 module.exports = {
   getUserById,
   updateUser,
   deleteUser,
+  buscarEstudiantes,
 };

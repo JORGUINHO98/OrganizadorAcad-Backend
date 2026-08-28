@@ -33,6 +33,14 @@ const userSchema = new mongoose.Schema({
     required: [true, 'La contraseña es obligatoria'],
     minlength: 6
   },
+  // Cédula/documento de identidad. Opcional, pero si se manda debe ser único.
+  // Permite buscar estudiantes por CI además de por nombre.
+  ci: {
+    type: String,
+    trim: true,
+    unique: true,
+    sparse: true, // permite muchos usuarios sin CI sin chocar el índice único
+  },
   rol: {
     type: rolEmbeddedSchema,
     required: [true, 'El rol es obligatorio']
@@ -46,8 +54,7 @@ const userSchema = new mongoose.Schema({
 });
 
 // IMPORTANTE: no mezclar "async" con el parámetro "next" NI llamarlo en
-// ninguna rama (ni siquiera en el "return next()" del early-return).
-// Al ser async, Mongoose espera la promesa; no invoca next() de verdad.
+// ninguna rama. Al ser async, Mongoose espera la promesa; no invoca next() de verdad.
 userSchema.pre('save', async function () {
   if (!this.isModified('password')) return;
   this.password = await bcrypt.hash(this.password, 10);

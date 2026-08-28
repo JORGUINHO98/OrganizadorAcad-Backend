@@ -49,7 +49,7 @@ const login = async (req, res) => {
 
 const register = async (req, res) => {
     try {
-        const { username, email, password, rolId } = req.body;
+        const { username, email, password, rolId, ci } = req.body;
 
         if (!rolId) {
             return res.status(400).json({ error: 'El rolId es obligatorio' });
@@ -64,6 +64,7 @@ const register = async (req, res) => {
             username,
             email,
             password, // el pre('save') del modelo ya lo hashea
+            ci: ci ? ci.trim() : undefined, // opcional
             rolId: rolEncontrado._id,
             rol: {
                 nombre: rolEncontrado.nombre,
