@@ -40,9 +40,9 @@ const buscarMateriaDelEstudiante = async (materiaId, usuarioId) => {
 // Estudiante: solo tareas de las materias donde está inscrito.
 // Filtros opcionales: materiaId, completada, prioridad
 // ---------------------------------------------
-const getTareas = async (req, res) => {
+const getTareas = async (req, res, filtros = {}) => {
   try {
-    const { materiaId, completada, prioridad } = req.query;
+    const { materiaId, completada, prioridad } = { ...req.query, ...filtros };
 
     const filtroMateria = req.usuario.rolNombre === 'Docente'
       ? { usuarioId: req.usuario.id }
@@ -57,7 +57,9 @@ const getTareas = async (req, res) => {
 
     const materias = await Materia.find(filtroMateria).lean();
 
-    const tareas = materias.flatMap((materia) =>
+    const tareasPorId = new Map();
+
+    materias.forEach((materia) => {
       materia.tareas
         .filter((tarea) => {
           if (completada !== undefined && tarea.completada !== (completada === 'true')) {
@@ -68,12 +70,21 @@ const getTareas = async (req, res) => {
           }
           return true;
         })
-        .map((tarea) => ({
-          ...tarea,
-          materiaId: materia._id,
-          materiaNombre: materia.nombre,
-        }))
-    );
+        .forEach((tarea) => {
+          const tareaConMateria = {
+            ...tarea,
+            materiaId: materia._id,
+            materiaNombre: materia.nombre,
+          };
+          const tareaAnterior = tareasPorId.get(String(tarea._id));
+
+          if (!tareaAnterior || new Date(tarea.updatedAt) > new Date(tareaAnterior.updatedAt)) {
+            tareasPorId.set(String(tarea._id), tareaConMateria);
+          }
+        });
+    });
+
+    const tareas = [...tareasPorId.values()];
 
     return res.status(200).json(tareas);
   } catch (error) {
@@ -82,8 +93,7 @@ const getTareas = async (req, res) => {
 };
 
 const getTareasPendientes = async (req, res) => {
-  req.query.completada = 'false';
-  return getTareas(req, res);
+  return getTareas(req, res, { completada: 'false' });
 };
 
 // ---------------------------------------------
